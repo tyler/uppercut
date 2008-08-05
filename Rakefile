@@ -38,7 +38,7 @@ spec = Gem::Specification.new do |s|
   s.bindir       = "bin"
   s.description  = s.summary
   s.require_path = "lib"
-  s.files        = %w( LICENSE README Rakefile ) + Dir["{docs,bin,lib,examples}/**/*"]
+  s.files        = %w(LICENSE README.textile Rakefile) + Dir["{docs,bin,lib,examples}/**/*"]
 
   # Dependencies
   s.add_dependency "xmpp4r"
