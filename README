@@ -1,0 +1,78 @@
+h1. Uppercut
+
+
+h2. Overview
+
+Uppercut is a little DSL for writing agents which you interact with via your Jabber client.
+
+
+h2. Making an Agent
+
+You could put together a very simple agent as follows:
+
+<pre>
+  <code>
+    class BasicAgent < Uppercut::Agent
+      command 'date' do |m|
+        m.send `date`
+      end
+  
+      command /^cat (.*)/ do |m,rest|
+        m.send File.read(rest)
+      end
+  
+      command 'report' do |m|
+        m.send 'Hostname: ' + `hostname`
+        m.send 'Running as: ' + ENV['USER']
+      end
+    end
+  </code>
+</pre>
+
+With the above code, we've created an Agent template of sorts.  It responds to three commands: {date cat report}.
+The block which is passed to "command" should always have at least one paramater.  The first parameter will 
+always be an Uppercut::Message object, which can be used to respond to the user who sent the input.  When passing
+a regular expression as the first parameter to "command", all of the _captures_ which the pattern match generates
+will also be passed to the block.  This can be seen in the "cat" example above.  There is one capture and it is
+passed in as _rest_.
+
+Then to actually put the Agent to work...
+
+<pre>
+  <code>
+    BasicAgent.new('user@server/resource','password').listen
+  </code>
+</pre>
+
+This creates a new BasicAgent instance and sends it _listen_ to make it start accepting messages.
+Note that by default when an agent is listening, it ignores all errors.  (In the future, I'll have it log them.)
+You can pass _:debug_ to _listen_ and it will happily explode when it normally would.
+
+
+h2. Todo
+
+
+h3. Security
+
+I really really recommend not using this on an open Jabber network.  Currently it uses xmpp4r-simple, which by
+default automatically approves all requests, and so is clearly vulnerable to just anyone sending it messages.
+Seriously... Don't use this on an open Jabber network, you'll regret it. 
+
+You can however use it on a closed Jabber network with proper SSL support and general registration disabled. I
+recommend ejabberd. :)
+
+I intend to implement some features to make this more safe to use on open networks at some point, but it's not
+a priority.
+
+
+h3. Features
+
+Uppercut is currently very thin on features, as it's in its infancy.  Here's a brief list of where I'm
+currently intending to take the project:
+
+* send files to and receive files from agents
+* improving the way one writes executables (using the Daemons library is best for the moment)
+* auto-updating of agents
+* I swear I'm going to find a use for MUC
+* allow agents to establish communications on their own, rather than being reactionary (think RSS updates)
+* ... other stuff that sounds fun to code up ...
