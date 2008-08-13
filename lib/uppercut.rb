@@ -12,6 +12,18 @@ class Uppercut
 
   class Agent
     class << self
+      
+      # Define a new command for the agent.
+      # 
+      # The pattern can be a String or a Regexp.  If a String is passed, it
+      # will dispatch this command only on an exact match.  A Regexp simply
+      # must match.
+      #
+      # There is always at least one argument sent to the block.  The first
+      # is a always an Uppercut::Message object, which can be used to reply
+      # to the sender.  The rest of the arguments to the block correspond to
+      # any captures in the pattern Regexp. (Does not apply to String 
+      # patterns).
       def command(pattern,&block)
         define_method(gensym) do |msg|
           return :no_match unless captures = matches?(pattern,msg.body)
@@ -26,18 +38,29 @@ class Uppercut
       end
     end
 
+    # Create a new instance of an Agent, possibly connecting to the server.
+    #
+    # user should be a String in the form: "user@server/Resource".  pw is
+    # simply the password for this account.  The final, and optional, argument
+    # is a boolean which controls whether or not it will attempt to connect to
+    # the server immediately.  Defaults to true.
     def initialize(user,pw,do_connect=true)
       @user = user
       @pw = pw
       connect if do_connect
     end
-
-    def inspect
+    
+    
+    def inspect #:nodoc:
       "<Uppercut::Agent #{@user} " +
       "#{listening? ? 'Listening' : 'Not Listening'}:" +
       "#{connected? ? 'Connected' : 'Disconnected'}>"
     end
 
+    # Attempt to connect to the server, if not already connected.
+    #
+    # Raises a simple RuntimeError if it fails to connect.  This should be
+    # changed eventually to be more useful.
     def connect
       return if connected?
       connect!
@@ -45,10 +68,12 @@ class Uppercut
       present!
     end
 
+    # Disconnects from the server if it is connected.
     def disconnect
       disconnect! if connected?
     end
 
+    # Disconnects and connects to the server.
     def reconnect
       disconnect
       connect
@@ -56,6 +81,16 @@ class Uppercut
 
     attr_reader :client
     
+    # Makes an Agent instance begin listening for incoming messages and
+    # subscription requests.
+    #
+    # Current listen simply eats any errors that occur, in the interest of
+    # keeping the remote agent alive.  These should be logged at some point
+    # in the future. Pass debug as true to prevent this behaviour.
+    #
+    # Calling listen fires off a new Thread whose sole purpose is to listen
+    # for new incoming messages and then fire off a new Thread which dispatches
+    # the message to the proper handler.
     def listen(debug=false)
       connect unless connected?
       
@@ -71,14 +106,38 @@ class Uppercut
             end
           end
         end
+        @client.add_subscription_request_callback do |item,presence|
+          @roster ||= Roster::Helper.new(@client)
+          @roster.accept_subscription(presence.from)
+        end
         sleep
       }
     end
 
+    # Stops the Agent from listening to incoming messages.
+    #
+    # Simply kills the thread if it is running.
     def stop
       @listen_thread.kill if listening?
     end
 
+    # True if the Agent is currently connected to the Jabber server.
+    def connected?
+      @client.respond_to?(:is_connected?) && @client.is_connected?
+    end
+    
+    # True if the Agent is currently listening for incoming messages.
+    def listening?
+      @listen_thread && @listen_thread.alive?
+    end
+    
+    def send_stanza(msg) #:nodoc:
+      return false unless connected?
+      send! msg
+    end
+
+    private
+    
     def dispatch(msg)
       d_to = self.methods.sort.grep(/^__uc/).detect { |m| send(m,msg) != :no_match }
     end
@@ -98,21 +157,6 @@ class Uppercut
       end
       captures
     end
-
-    def connected?
-      @client.respond_to?(:is_connected?) && @client.is_connected?
-    end
-    
-    def listening?
-      @listen_thread && @listen_thread.alive?
-    end
-    
-    def send_stanza(msg)
-      return false unless connected?
-      send! msg
-    end
-
-    private
 
     def connect!
       @connect_lock ||= Mutex.new
@@ -166,11 +210,12 @@ class Uppercut
   end
 
   class Message
-    def initialize(to,agent)
+    def initialize(to,agent) #:nodoc:
       @to = to
       @agent = agent
     end
 
+    # Send a blob of text.
     def send(body)
       msg = Jabber::Message.new(@to)
       msg.type = :chat
