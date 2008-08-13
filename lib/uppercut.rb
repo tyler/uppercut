@@ -61,6 +61,7 @@ class Uppercut
       
       @listen_thread = Thread.new {
         @client.add_message_callback do |message|
+          next if message.body.nil?
           Thread.new do
             begin
               dispatch(message)
