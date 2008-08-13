@@ -70,7 +70,7 @@ class Uppercut
             end
           end
         end
-        loop { sleep(0.2) }
+        sleep
       }
     end
 
