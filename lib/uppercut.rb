@@ -33,7 +33,9 @@ class Uppercut
     end
 
     def inspect
-      "<Uppercut::Agent #{@user} #{connected? ? 'Connected' : 'Disconnected'}>"
+      "<Uppercut::Agent #{@user} " +
+      "#{listening? ? 'Listening' : 'Not Listening'}:" +
+      "#{connected? ? 'Connected' : 'Disconnected'}>"
     end
 
     def connect
@@ -56,18 +58,24 @@ class Uppercut
     
     def listen(debug=false)
       connect unless connected?
-      @messages ||= []
-      @client.add_message_callback do |message|
-        Thread.new do
-          begin
-            dispatch(message)
-          rescue => e
-            log e
-            raise if debug
+      
+      @listen_thread = Thread.new {
+        @client.add_message_callback do |message|
+          Thread.new do
+            begin
+              dispatch(message)
+            rescue => e
+              log e
+              raise if debug
+            end
           end
         end
-      end
-      loop { sleep(0.2) }
+        loop { sleep(0.2) }
+      }
+    end
+
+    def stop
+      @listen_thread.kill if listening?
     end
 
     def dispatch(msg)
@@ -92,6 +100,10 @@ class Uppercut
 
     def connected?
       @client.respond_to?(:is_connected?) && @client.is_connected?
+    end
+    
+    def listening?
+      @listen_thread && @listen_thread.alive?
     end
     
     def send_stanza(msg)
