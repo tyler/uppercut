@@ -6,9 +6,10 @@
 
 require 'rubygems'
 require 'xmpp4r'
+require 'xmpp4r/roster'
 
 class Uppercut
-  VERSION = "0.0.2"
+  VERSION = "0.0.3"
 
   class Agent
     class << self
@@ -27,14 +28,16 @@ class Uppercut
       def command(pattern,&block)
         define_method(gensym) do |msg|
           return :no_match unless captures = matches?(pattern,msg.body)
-          block[Message.new(msg.from,self),*captures]
+          block[Conversation.new(msg.from,self),*captures]
         end
       end
+      
+
 
       private
 
       def gensym
-        '__uc' + (self.instance_methods.grep(/^__uc/).size - 1).to_s.rjust(8,'0')
+        '__uc' + (self.instance_methods.grep(/^__uc/).size).to_s.rjust(8,'0')
       end
     end
 
@@ -48,6 +51,8 @@ class Uppercut
       @user = user
       @pw = pw
       connect if do_connect
+      
+      @redirects = {}
     end
     
     
@@ -106,8 +111,8 @@ class Uppercut
             end
           end
         end
-        @client.add_subscription_request_callback do |item,presence|
-          @roster ||= Roster::Helper.new(@client)
+        @roster ||= Jabber::Roster::Helper.new(@client)
+        @roster.add_subscription_request_callback do |item,presence|
           @roster.accept_subscription(presence.from)
         end
         sleep
@@ -131,6 +136,13 @@ class Uppercut
       @listen_thread && @listen_thread.alive?
     end
     
+    def redirect_from(contact,&block)
+      @redirects[contact] ||= []
+      @redirects[contact].push block
+    end
+    
+    
+    
     def send_stanza(msg) #:nodoc:
       return false unless connected?
       send! msg
@@ -139,6 +151,9 @@ class Uppercut
     private
     
     def dispatch(msg)
+      block = @redirects[msg.from].respond_to?(:shift) && @redirects[msg.from].shift
+      return block[msg.body] if block
+      
       d_to = self.methods.sort.grep(/^__uc/).detect { |m| send(m,msg) != :no_match }
     end
 
@@ -205,19 +220,37 @@ class Uppercut
 
     def log(error)
       # todo
+      p error
     end
 
   end
 
-  class Message
-    def initialize(to,agent) #:nodoc:
-      @to = to
+  class Conversation
+    def initialize(contact,agent) #:nodoc:
+      @contact = contact
       @agent = agent
+    end
+    
+    # Wait for another message from this contact.
+    #
+    # Expects a block which should receive one parameter, which will be a
+    # String.
+    #
+    # One common use of _wait_for_ is for confirmation of a sensitive action.
+    #
+    #     command('foo') do |c|
+    #       c.send 'Are you sure?'
+    #       c.wait_for do |reply|
+    #         do_it if reply.downcase == 'yes'
+    #       end
+    #     end
+    def wait_for(&block)
+      @agent.redirect_from(@contact,&block)
     end
 
     # Send a blob of text.
     def send(body)
-      msg = Jabber::Message.new(@to)
+      msg = Jabber::Message.new(@contact)
       msg.type = :chat
       msg.body = body
       @agent.send_stanza(msg)

@@ -13,15 +13,15 @@ You could put together a very simple agent as follows:
 <pre>
   <code>
     class BasicAgent < Uppercut::Agent
-      command 'date' do |m|
+      command 'date' do |c|
         m.send `date`
       end
   
-      command /^cat (.*)/ do |m,rest|
+      command /^cat (.*)/ do |c,rest|
         m.send File.read(rest)
       end
   
-      command 'report' do |m|
+      command 'report' do |c|
         m.send 'Hostname: ' + `hostname`
         m.send 'Running as: ' + ENV['USER']
       end
@@ -31,7 +31,7 @@ You could put together a very simple agent as follows:
 
 With the above code, we've created an Agent template of sorts.  It responds to three commands: {date cat report}.
 The block which is passed to "command" should always have at least one paramater.  The first parameter will 
-always be an Uppercut::Message object, which can be used to respond to the user who sent the input.  When passing
+always be an Uppercut::Conversation object, which can be used to respond to the user who sent the input.  When passing
 a regular expression as the first parameter to "command", all of the _captures_ which the pattern match generates
 will also be passed to the block.  This can be seen in the "cat" example above.  There is one capture and it is
 passed in as _rest_.
@@ -46,7 +46,6 @@ Then to actually put the Agent to work...
 
 This creates a new BasicAgent instance and sends it _listen_ to make it start accepting messages.
 Note that by default when an agent is listening, it ignores all errors.  (In the future, I'll have it log them.)
-You can pass _:debug_ to _listen_ and it will happily explode when it normally would.
 
 
 h2. Todo
