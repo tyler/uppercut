@@ -8,12 +8,12 @@ require 'rubygems'
 require 'xmpp4r'
 require 'xmpp4r/roster'
 
+
 class Uppercut
   VERSION = "0.0.3"
 
   class Agent
     class << self
-      
       # Define a new command for the agent.
       # 
       # The pattern can be a String or a Regexp.  If a String is passed, it
@@ -31,8 +31,6 @@ class Uppercut
           block[Conversation.new(msg.from,self),*captures]
         end
       end
-      
-
 
       private
 
@@ -226,6 +224,7 @@ class Uppercut
   end
 
   class Conversation
+    attr_reader :contact
     def initialize(contact,agent) #:nodoc:
       @contact = contact
       @agent = agent

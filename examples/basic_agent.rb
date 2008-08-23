@@ -11,4 +11,11 @@ class BasicAgent < Uppercut::Agent
     m.send 'Hostname: ' + `hostname`
     m.send 'Running as: ' + ENV['USER']
   end
+  
+  command 'dangerous' do |c|
+    c.send "Are you sure?!"
+    c.wait_for do |reply|
+      c.send %w(yes y).include?(reply.downcase) ? "Okay!  Done boss!" : "Cancelled!"
+    end
+  end
 end
