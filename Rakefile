@@ -4,6 +4,7 @@ require "rake"
 require "rake/clean"
 require "rake/gempackagetask"
 require "rake/rdoctask"
+require "spec/rake/spectask"
 require "fileutils"
 
 require File.dirname(__FILE__) + "/lib/uppercut"
@@ -73,4 +74,13 @@ namespace :doc do
     rdoc.options << "--line-numbers" << "--inline-source"
   end
 
+end
+
+
+##############################################################################
+# Specs
+##############################################################################
+desc "Run all specs"
+Spec::Rake::SpecTask.new('specs') do |t|
+  t.spec_files = FileList['specs/*_spec.rb']
 end
