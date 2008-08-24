@@ -54,7 +54,7 @@ describe Uppercut::Agent do
   
   describe :disconnect do
     it "does not try to disconnect if not connected" do
-      @agent.client.should == nil
+      @agent.client.should be_nil
       @agent.instance_eval { @client = :foo }
       
       @agent.disconnect
@@ -63,10 +63,10 @@ describe Uppercut::Agent do
     
     it "sets @client to nil" do
       @agent.connect
-      (!!@agent.client).should == true
+      @agent.client.should_not be_nil
       
       @agent.disconnect
-      (!!@agent.client).should_not == true
+      @agent.client.should be_nil
     end
   end
   
