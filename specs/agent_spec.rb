@@ -8,12 +8,12 @@ describe Uppercut::Agent do
   describe :new do
     it "connects by default" do
       agent = Uppercut::Agent.new('test@foo','pw')
-      agent.connected?.should == true
+      agent.should be_connected
     end
 
     it "does not connect by default" do
       agent = Uppercut::Agent.new('test@foo','pw',false)
-      agent.connected?.should_not == true
+      agent.should_not be_connected
     end
 
     it "initializes @redirects with a blank hash" do
@@ -38,7 +38,7 @@ describe Uppercut::Agent do
     end
     
     it "connects if disconnected" do
-      @agent.connected?.should_not == true
+      @agent.should_not be_connected
 
       old_client = @agent.client
       
@@ -83,16 +83,16 @@ describe Uppercut::Agent do
     it "returns true if client#is_connected? is true" do
       @agent.connect
       @agent.client.instance_eval { @connected = true }
-      @agent.connected?.should == true
+      @agent.should be_connected
     end
   end
   
   describe :listen do
     it "connects if not connected" do
       @agent.listen
-      @agent.connected?.should == true
+      @agent.should be_connected
     end
-    
+
     it "spins off a new thread in @listen_thread" do
       @agent.listen
       @agent.instance_eval { @listen_thread.class }.should == Thread
@@ -129,17 +129,17 @@ describe Uppercut::Agent do
     it "returns true if @listen_thread is alive" do
       @agent.listen
       @agent.instance_eval { @listen_thread.alive? }.should == true
-      @agent.listening?.should == true
+      @agent.should be_listening
     end
     
     it "returns false if @listen_thread is not alive" do
       @agent.listen
       @agent.stop
-      @agent.listening?.should_not == true
+      @agent.should_not be_listening
     end
     
     it "returns false if @listen_thread has not been set" do
-      @agent.listening?.should_not == true
+      @agent.should_not be_listening
     end
   end
   
