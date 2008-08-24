@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'spec'
+require 'set'
 
 $: << File.dirname(__FILE__)
 $: << File.join(File.dirname(__FILE__),'../lib')
@@ -12,8 +13,13 @@ require 'jabber_stub'
 
 class TestAgent < Uppercut::Agent
   command 'hi' do |c|
-    @called_hi = true
-    c.send 'hello children!'
+    c.instance_eval { @agent.instance_eval { @called_hi = true } }
+    c.send 'called hi'
+  end
+  
+  command /^hi/ do |c|
+    c.instance_eval { @agent.instance_eval { @called_hi_regex = true } }
+    c.send 'called high regex'
   end
   
   command /(good)?bye/ do |c,good|

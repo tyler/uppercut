@@ -1,7 +1,5 @@
 # TODO: send files
 # TODO: auto-reconnect
-# TODO: spin off listens into their own threads
-# TODO: restart (stop-unload-reload-start) agents -- useful for updates
 # TODO: MUC?  any use for this?
 
 require 'rubygems'
@@ -82,7 +80,7 @@ class Uppercut
       connect
     end
 
-    attr_reader :client
+    attr_reader :client, :roster
     
     # Makes an Agent instance begin listening for incoming messages and
     # subscription requests.
@@ -152,7 +150,7 @@ class Uppercut
       block = @redirects[msg.from].respond_to?(:shift) && @redirects[msg.from].shift
       return block[msg.body] if block
       
-      d_to = self.methods.sort.grep(/^__uc/).detect { |m| send(m,msg) != :no_match }
+      self.methods.grep(/^__uc/).sort.detect { |m| send(m,msg) != :no_match }
     end
 
     def __ucDefault(msg)

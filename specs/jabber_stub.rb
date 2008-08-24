@@ -27,6 +27,7 @@ class Jabber
       @sent << msg
     end
     
+    attr_reader :on_message
     def add_message_callback(&block)
       @on_message = block
     end
@@ -65,9 +66,10 @@ class Jabber
       
       def accept_subscription(a)
       end
-      
+   
+      attr_reader :on_subscription_request
       def add_subscription_request_callback(&block)
-        @subscription_request_callback = block
+        @on_subscription_request = block
       end
     end
   end

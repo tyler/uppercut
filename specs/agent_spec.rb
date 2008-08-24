@@ -2,26 +2,26 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 
 describe Uppercut::Agent do
   before :each do
-    @agent = Uppercut::Agent.new('test@foo.com', 'pw', false)
+    @agent = TestAgent.new('test@foo.com', 'pw', false)
   end
   
   describe :new do
-    it "should connect by default" do
+    it "connects by default" do
       agent = Uppercut::Agent.new('test@foo','pw')
       agent.connected?.should == true
     end
 
-    it "should not connect by default" do
+    it "does not connect by default" do
       agent = Uppercut::Agent.new('test@foo','pw',false)
       agent.connected?.should_not == true
     end
 
-    it "should initialize @redirects with a blank hash" do
+    it "initializes @redirects with a blank hash" do
       agent = Uppercut::Agent.new('test@foo','pw',false)
       agent.instance_eval { @redirects }.should == {}
     end
 
-    it "should populate @pw and @user" do
+    it "populates @pw and @user" do
       agent = Uppercut::Agent.new('test@foo','pw')
       agent.instance_eval { @pw }.should == 'pw'
       agent.instance_eval { @user }.should == 'test@foo'
@@ -29,7 +29,7 @@ describe Uppercut::Agent do
   end
   
   describe :connect do
-    it "should not try to connect if already connected" do
+    it "does not try to connect if already connected" do
       @agent.connect
       old_client = @agent.client
 
@@ -37,7 +37,7 @@ describe Uppercut::Agent do
       (@agent.client == old_client).should == true
     end
     
-    it "should connect if disconnected" do
+    it "connects if disconnected" do
       @agent.connected?.should_not == true
 
       old_client = @agent.client
@@ -46,14 +46,14 @@ describe Uppercut::Agent do
       (@agent.client == old_client).should_not == true
     end
     
-    it "should send a Presence notification" do
+    it "sends a Presence notification" do
       @agent.connect
       @agent.client.sent.first.class.should == Jabber::Presence
     end
   end
   
   describe :disconnect do
-    it "should not try to disconnect if not connected" do
+    it "does not try to disconnect if not connected" do
       @agent.client.should == nil
       @agent.instance_eval { @client = :foo }
       
@@ -61,7 +61,7 @@ describe Uppercut::Agent do
       @agent.client.should == :foo
     end
     
-    it "should set @client to nil" do
+    it "sets @client to nil" do
       @agent.connect
       (!!@agent.client).should == true
       
@@ -71,7 +71,7 @@ describe Uppercut::Agent do
   end
   
   describe :reconnect do
-    it "should call disconnect then connect" do
+    it "calls disconnect then connect" do
       hooks = Module.new
       hooks.send(:define_method, :connect, lambda { @called_connect = true })
       hooks.send(:define_method, :disconnect, lambda { @called_disconnect = true })
@@ -84,10 +84,91 @@ describe Uppercut::Agent do
   end
   
   describe :connected? do
-    it "should return true if client#is_connected? is true" do
+    it "returns true if client#is_connected? is true" do
       @agent.connect
       @agent.client.instance_eval { @connected = true }
       @agent.connected?.should == true
+    end
+  end
+  
+  describe :listen do
+    it "connects if not connected" do
+      @agent.listen
+      @agent.connected?.should == true
+    end
+    
+    it "spins off a new thread in @listen_thread" do
+      @agent.listen
+      @agent.instance_eval { @listen_thread.class }.should == Thread
+    end
+    
+    it "creates a receive message callback" do
+      @agent.listen
+      @agent.client.on_message.class.should == Proc
+    end
+    
+    it "creates a subscription request callback" do
+      @agent.listen
+      @agent.roster.on_subscription_request.class.should == Proc
+    end
+    
+    it "calls dispatch when receving a message" do
+      hooks = Module.new
+      hooks.send(:define_method, :dispatch, lambda { |m| @last_dispatch = m })
+      @agent.extend hooks
+      
+      @agent.listen
+      
+      @agent.client.receive_message("foo@bar.com","test")
+      @agent.instance_eval { @last_dispatch.body }.should == 'test'
+    end
+  end
+  
+  describe :stop do
+    it "kills the @listen_thread" do
+      @agent.listen
+      @agent.instance_eval { @listen_thread.alive? }.should == true
+      
+      @agent.stop
+      @agent.instance_eval { @listen_thread.alive? }.should_not == true
+    end
+  end
+  
+  describe :listening? do
+    it "returns true if @listen_thread is alive" do
+      @agent.listen
+      @agent.instance_eval { @listen_thread.alive? }.should == true
+      @agent.listening?.should == true
+    end
+    
+    it "returns false if @listen_thread is not alive" do
+      @agent.listen
+      @agent.stop
+      @agent.listening?.should_not == true
+    end
+    
+    it "returns false if @listen_thread has not been set" do
+      @agent.listening?.should_not == true
+    end
+  end
+  
+  describe :dispatch do
+    it "calls the first matching command" do
+      msg = Jabber::Message.new(nil)
+      msg.body = 'hi'
+            
+      @agent.send(:dispatch, msg)
+      @agent.instance_eval { @called_hi_regex }.should_not == true
+      @agent.instance_eval { @called_hi }.should == true
+    end
+    
+    it "matches by regular expression" do
+      msg = Jabber::Message.new(nil)
+      msg.body = 'high'
+      
+      @agent.send(:dispatch, msg)
+      @agent.instance_eval { @called_hi }.should_not == true
+      @agent.instance_eval { @called_hi_regex }.should == true
     end
   end
 end
