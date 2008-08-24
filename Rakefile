@@ -42,7 +42,6 @@ spec = Gem::Specification.new do |s|
 
   # Dependencies
   s.add_dependency "xmpp4r"
-  s.add_dependency "xmpp4r-simple"
 end
 
 Rake::GemPackageTask.new(spec) do |package|
