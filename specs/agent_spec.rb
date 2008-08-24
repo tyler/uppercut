@@ -72,14 +72,10 @@ describe Uppercut::Agent do
   
   describe :reconnect do
     it "calls disconnect then connect" do
-      hooks = Module.new
-      hooks.send(:define_method, :connect, lambda { @called_connect = true })
-      hooks.send(:define_method, :disconnect, lambda { @called_disconnect = true })
-      @agent.extend(hooks)
-      
+      @agent.should_receive(:disconnect).once.ordered
+      @agent.should_receive(:connect).once.ordered
+
       @agent.reconnect
-      @agent.instance_eval { @called_disconnect }.should == true
-      @agent.instance_eval { @called_connect }.should == true
     end
   end
   
@@ -113,14 +109,9 @@ describe Uppercut::Agent do
     end
     
     it "calls dispatch when receving a message" do
-      hooks = Module.new
-      hooks.send(:define_method, :dispatch, lambda { |m| @last_dispatch = m })
-      @agent.extend hooks
-      
       @agent.listen
-      
+      @agent.should_receive(:dispatch)
       @agent.client.receive_message("foo@bar.com","test")
-      @agent.instance_eval { @last_dispatch.body }.should == 'test'
     end
   end
   
