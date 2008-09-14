@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 
 describe Uppercut::Agent do
   before :each do
-    @agent = TestAgent.new('test@foo.com', 'pw', false)
+    @agent = TestAgent.new('test@foo.com', 'pw', :connect => false)
   end
   
   describe :new do
@@ -11,13 +11,13 @@ describe Uppercut::Agent do
       agent.should be_connected
     end
 
-    it "does not connect by default" do
-      agent = Uppercut::Agent.new('test@foo','pw',false)
+    it "does not connect by default with :connect = false" do
+      agent = Uppercut::Agent.new('test@foo','pw', :connect => false)
       agent.should_not be_connected
     end
 
     it "initializes @redirects with a blank hash" do
-      agent = Uppercut::Agent.new('test@foo','pw',false)
+      agent = Uppercut::Agent.new('test@foo','pw', :connect => false)
       agent.instance_eval { @redirects }.should == {}
     end
 
@@ -25,6 +25,12 @@ describe Uppercut::Agent do
       agent = Uppercut::Agent.new('test@foo','pw')
       agent.instance_eval { @pw }.should == 'pw'
       agent.instance_eval { @user }.should == 'test@foo'
+    end
+    
+    it "populates @allowed_roster with :roster option" do
+      jids = %w(bob@foo fred@foo)
+      agent = Uppercut::Agent.new('test@foo','pw', :roster => jids)
+      agent.instance_eval { @allowed_roster }.should == jids
     end
   end
   

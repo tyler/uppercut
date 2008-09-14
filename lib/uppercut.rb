@@ -37,17 +37,22 @@ class Uppercut
       end
     end
 
+    DEFAULT_OPTIONS = { :connect => true }
+    
     # Create a new instance of an Agent, possibly connecting to the server.
     #
     # user should be a String in the form: "user@server/Resource".  pw is
     # simply the password for this account.  The final, and optional, argument
     # is a boolean which controls whether or not it will attempt to connect to
     # the server immediately.  Defaults to true.
-    def initialize(user,pw,do_connect=true)
+    def initialize(user,pw,options={})
+      options = DEFAULT_OPTIONS.merge(options)
+      
       @user = user
       @pw = pw
-      connect if do_connect
+      connect if options[:connect]
       
+      @allowed_roster = options[:roster]
       @redirects = {}
     end
     
@@ -94,10 +99,12 @@ class Uppercut
     # the message to the proper handler.
     def listen(debug=false)
       connect unless connected?
-      
+
       @listen_thread = Thread.new {
         @client.add_message_callback do |message|
           next if message.body.nil?
+          next unless allowed_roster_includes?(message.from)
+
           Thread.new do
             begin
               dispatch(message)
@@ -109,7 +116,8 @@ class Uppercut
         end
         @roster ||= Jabber::Roster::Helper.new(@client)
         @roster.add_subscription_request_callback do |item,presence|
-          @roster.accept_subscription(presence.from)
+          next unless allowed_roster_includes?(presence.from)
+          @roster.accept_subscription(presence.from) 
         end
         sleep
       }
@@ -137,7 +145,7 @@ class Uppercut
       @redirects[contact].push block
     end
     
-    
+    attr_accessor :allowed_roster
     
     def send_stanza(msg) #:nodoc:
       return false unless connected?
@@ -219,6 +227,13 @@ class Uppercut
       p error
     end
 
+    def allowed_roster_includes?(jid)
+      return true unless @allowed_roster
+      
+      jid = jid.to_s
+      return true if @allowed_roster.include?(jid)
+      return true if @allowed_roster.include?(jid.sub(/\/[^\/]+$/,''))
+    end
   end
 
   class Conversation
