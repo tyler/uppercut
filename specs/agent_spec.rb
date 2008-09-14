@@ -15,6 +15,11 @@ describe Uppercut::Agent do
       agent = Uppercut::Agent.new('test@foo','pw', :connect => false)
       agent.should_not be_connected
     end
+    
+    it "starts to listen with :listen = true" do
+      agent = Uppercut::Agent.new('test@foo','pw', :listen => true)
+      agent.should be_listening
+    end
 
     it "initializes @redirects with a blank hash" do
       agent = Uppercut::Agent.new('test@foo','pw', :connect => false)

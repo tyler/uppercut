@@ -51,6 +51,7 @@ class Uppercut
       @user = user
       @pw = pw
       connect if options[:connect]
+      listen if options[:listen]
       
       @allowed_roster = options[:roster]
       @redirects = {}
