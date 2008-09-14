@@ -53,16 +53,15 @@ h2. Todo
 
 h3. Security
 
-I really really recommend not using this on an open Jabber network.  Currently it uses xmpp4r-simple, which by
-default automatically approves all requests, and so is clearly vulnerable to just anyone sending it messages.
-Seriously... Don't use this on an open Jabber network, you'll regret it. 
+If you intend to use this on an open Jabber network (read: Google Talk) take some precautions.  Agent#new takes an optional list of JIDs that the agent will respond to.
 
-You can however use it on a closed Jabber network with proper SSL support and general registration disabled. I
-recommend ejabberd. :)
+<pre>
+  <code>
+    BasicAgent.new('user@server/res', 'pw', :roster => ['you@server'])
+  </code>
+</pre>
 
-I intend to implement some features to make this more safe to use on open networks at some point, but it's not
-a priority.
-
+The agent created with the above statement will not respond to messages or subscription requests from anyone other than 'you@server'.
 
 h3. Features
 
