@@ -13,12 +13,12 @@ require 'jabber_stub'
 
 class TestAgent < Uppercut::Agent
   command 'hi' do |c|
-    c.instance_eval { @agent.instance_eval { @called_hi = true } }
+    c.instance_eval { @base.instance_eval { @called_hi = true } }
     c.send 'called hi'
   end
   
   command /^hi/ do |c|
-    c.instance_eval { @agent.instance_eval { @called_hi_regex = true } }
+    c.instance_eval { @base.instance_eval { @called_hi_regex = true } }
     c.send 'called high regex'
   end
   
@@ -38,5 +38,8 @@ class TestAgent < Uppercut::Agent
 end
 
 class TestNotifier < Uppercut::Notifier
-  
+  notifier :foo do |m,data|
+    m.to = 'foo@bar.com'
+    m.send 'Foo happened!'
+  end
 end

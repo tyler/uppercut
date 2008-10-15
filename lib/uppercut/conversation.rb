@@ -1,9 +1,10 @@
 class Uppercut
-  class Conversation
-    attr_reader :contact
-    def initialize(contact,agent) #:nodoc:
-      @contact = contact
-      @agent = agent
+  class Conversation < Message
+    attr_reader :to
+
+    def initialize(to,base) #:nodoc:
+      @to = to
+      super base
     end
     
     # Wait for another message from this contact.
@@ -20,15 +21,8 @@ class Uppercut
     #       end
     #     end
     def wait_for(&block)
-      @agent.redirect_from(@contact,&block)
+      @base.redirect_from(@to,&block)
     end
 
-    # Send a blob of text.
-    def send(body)
-      msg = Jabber::Message.new(@contact)
-      msg.type = :chat
-      msg.body = body
-      @agent.send_stanza(msg)
-    end
   end
 end

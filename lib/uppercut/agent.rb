@@ -113,7 +113,7 @@ class Uppercut
     def dispatch(msg)
       block = @redirects[msg.from].respond_to?(:shift) && @redirects[msg.from].shift
       return block[msg.body] if block
-      
+
       self.methods.grep(/^__uc/).sort.detect { |m| send(m,msg) != :no_match }
     end
 

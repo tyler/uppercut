@@ -1,5 +1,10 @@
 class Uppercut
   class Base
+    def stanza(msg) #:nodoc:
+      return false unless connected?
+      send! msg
+    end
+
     # Attempt to connect to the server, if not already connected.
     #
     # Raises a simple RuntimeError if it fails to connect.  This should be
@@ -29,11 +34,6 @@ class Uppercut
       @client.respond_to?(:is_connected?) && @client.is_connected?
     end
     
-    def send_stanza(msg) #:nodoc:
-      return false unless connected?
-      send! msg
-    end
-
     private
     
     def connect!
