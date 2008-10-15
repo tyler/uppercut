@@ -8,7 +8,6 @@ require 'xmpp4r/roster'
 
 
 class Uppercut
-  VERSION = "0.0.3"
 
   class Agent
     class << self

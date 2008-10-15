@@ -28,22 +28,7 @@ task :default => :package
 
 task :uppercut => [:clean, :rdoc, :package]
 
-spec = Gem::Specification.new do |s|
-  s.name         = NAME
-  s.version      = Uppercut::VERSION
-  s.platform     = Gem::Platform::RUBY
-  s.author       = "Tyler McMullen"
-  s.email        = "tbmcmullen@gmail.com"
-  s.homepage     = "http://codehallow.com"
-  s.summary      = "Uppercut.  DSL for putting Jabber to work for you."
-  s.bindir       = "bin"
-  s.description  = s.summary
-  s.require_path = "lib"
-  s.files        = %w(LICENSE README.textile Rakefile) + Dir["{docs,bin,lib,examples}/**/*"]
-
-  # Dependencies
-  s.add_dependency "xmpp4r"
-end
+spec = eval(File.read(File.join(File.dirname(__FILE__), 'uppercut.gemspec')))
 
 Rake::GemPackageTask.new(spec) do |package|
   package.gem_spec = spec
