@@ -3,7 +3,7 @@ h1. Uppercut
 
 h2. Overview
 
-Uppercut is a little DSL for writing agents which you interact with via your Jabber client.
+Uppercut is a little DSL for writing agents and notifiers which you interact with via your Jabber client.
 
 
 h2. Making an Agent
@@ -47,6 +47,33 @@ Then to actually put the Agent to work...
 This creates a new BasicAgent instance and sends it _listen_ to make it start accepting messages.
 Note that by default when an agent is listening, it ignores all errors.  (In the future, I'll have it log them.)
 
+
+h2. Making a Notifier
+
+<pre>
+  <code>
+    class BasicNotifier < Uppercut::Notifier
+      notifier :error do |m,data|
+        m.to 'tbmcmullen@gmail.com'
+        m.send "Something in your app blew up: #{data}"
+      end
+    end
+  </code>
+</pre>
+
+So, we make a new Notifier class and call a _notifier_ block within it.  This makes a notifier with the name :error, which sends a message to tbmcmullen@gmail.com when it fires.
+
+<pre>
+  <code>
+    notifier = BasicNotifier.new('user@server/resource','password').connect
+    
+    notifier.notify :error, 'Sprocket Error!'
+  </code>
+</pre>
+
+The purpose of a Notifier is just to make a multi-purpose event-driven notification system.  You could use it notify yourself of errors in your Rails app, or ping you when a new comment arrives on your blog, or ... I dunno, something else.
+
+I am very aware of how limited this system is at the moment.  I have some big plans for Notifier, so just hang tight while I hack them out...
 
 h2. Todo
 
