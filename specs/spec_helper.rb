@@ -36,3 +36,7 @@ class TestAgent < Uppercut::Agent
     end
   end
 end
+
+class TestNotifier < Uppercut::Notifier
+  
+end
