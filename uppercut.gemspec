@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name         = NAME
+  s.name         = 'uppercut'
   s.version      = '0.5.0'
   s.platform     = Gem::Platform::RUBY
   s.author       = "Tyler McMullen"
@@ -9,7 +9,9 @@ Gem::Specification.new do |s|
   s.bindir       = "bin"
   s.description  = s.summary
   s.require_path = "lib"
-  s.files        = %w(LICENSE README.textile Rakefile) + Dir["{docs,bin,lib,examples}/**/*"]
+  s.files        = %w(LICENSE README.textile Rakefile lib/uppercut.rb) +
+                   Dir["examples/*"] +
+                   Dir["lib/uppercut/*"]
 
   # Dependencies
   s.add_dependency "xmpp4r"
