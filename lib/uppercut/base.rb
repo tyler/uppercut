@@ -86,12 +86,5 @@ class Uppercut
       p error
     end
 
-    def allowed_roster_includes?(jid)
-      return true unless @allowed_roster
-      
-      jid = jid.to_s
-      return true if @allowed_roster.include?(jid)
-      return true if @allowed_roster.include?(jid.sub(/\/[^\/]+$/,''))
-    end
   end
 end
