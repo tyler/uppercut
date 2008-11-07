@@ -1,3 +1,10 @@
+class BasicNotifier < Uppercut::Notifier
+  notifier :basic do |n,data|
+    n.to 'tyler@codehallow.com'
+    n.send 'Hey kid.'
+  end
+end
+
 class BasicAgent < Uppercut::Agent
   command 'date' do |m|
     m.send `date`
