@@ -73,7 +73,29 @@ So, we make a new Notifier class and call a _notifier_ block within it.  This ma
 
 The purpose of a Notifier is just to make a multi-purpose event-driven notification system.  You could use it notify yourself of errors in your Rails app, or ping you when a new comment arrives on your blog, or ... I dunno, something else.
 
-I am very aware of how limited this system is at the moment.  I have some big plans for Notifier, so just hang tight while I hack them out...
+The way I intend a Notifier to be used though is with Starling.  Take the following example...
+
+<pre>
+  <code>
+    notifier = BasicNotifier.new('user@server','password', :starling => 'localhost:22122', :queue => 'basic')
+    notifier.listen
+    sleep
+  </code>
+</pre>
+
+<pre>
+  <code>
+    require 'starling'
+    starling = Starling.new('localhost:22122')
+    starling.set 'basic', :error
+  </code>
+</pre>
+
+In that example, we have the same BasicNotifier.  Except this time, we provide it with information on which Starling queue on which Starling server to monitor.  Meanwhile, in the separate program, we attach to that same Starling server and push a symbol onto that same queue.
+
+In this case, what happens is BasicNotifier sees that symbol and begins processing it, just as if it had been passed in via the #notify method.
+
+
 
 h2. Todo
 
