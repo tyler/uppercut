@@ -13,40 +13,23 @@ include FileUtils
 
 NAME = "uppercut"
 
-##############################################################################
-# Packaging & Installation
-##############################################################################
-CLEAN.include ["**/.*.sw?", "pkg", "lib/*.bundle", "*.gem", "doc/rdoc", ".config", "coverage", "cache"]
-
-windows = (PLATFORM =~ /win32|cygwin/) rescue nil
-install_home = ENV['GEM_HOME'] ? "-i #{ENV['GEM_HOME']}" : ""
-
-SUDO = windows ? "" : "sudo"
-
-desc "Packages Uppercut."
-task :default => :package
-
-task :uppercut => [:clean, :rdoc, :package]
-
-spec = eval(File.read(File.join(File.dirname(__FILE__), 'uppercut.gemspec')))
-
-Rake::GemPackageTask.new(spec) do |package|
-  package.gem_spec = spec
+begin
+  require 'rubygems'
+  require 'jeweler'
+  Jeweler::Tasks.new do |s|
+    s.name = NAME
+    s.summary = "A DSL for writing agents and notifiers for Jabber."
+    s.email = "tbmcmullen@gmail.com"
+    s.homepage = "http://github.com/tyler/uppercut"
+    s.description = s.summary
+    s.authors = ["Tyler McMullen"]
+    s.add_dependency 'xmpp4r'
+  end
+rescue LoadError
+  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
 
-desc "Run :package and install the resulting .gem"
-task :install => :package do
-  sh %{#{SUDO} gem install #{install_home} --local pkg/#{NAME}-#{Uppercut::VERSION}.gem --no-rdoc --no-ri}
-end
 
-desc "Run :clean and uninstall the .gem"
-task :uninstall => :clean do
-  sh %{#{SUDO} gem uninstall #{NAME}}
-end
-
-##############################################################################
-# Documentation
-##############################################################################
 task :doc => [:rdoc]
 namespace :doc do
 
@@ -62,10 +45,7 @@ namespace :doc do
 end
 
 
-##############################################################################
-# Specs
-##############################################################################
 desc "Run all specs"
-Spec::Rake::SpecTask.new('specs') do |t|
-  t.spec_files = FileList['specs/*_spec.rb']
+Spec::Rake::SpecTask.new('spec') do |t|
+  t.spec_files = FileList['spec/*_spec.rb']
 end

@@ -1,16 +1,19 @@
 class Uppercut
   class Notifier < Base
     class << self
-      @@notifiers = {}
+      @@notifiers = []
       
       def notifier(name,&block)
-        @@notifiers[name] = block
+        @@notifiers << name
+        define_method(name, &block)
       end
     end
 
     def notify(name,data=nil)
       return false unless connected?
-      @@notifiers[name].call(Message.new(self),data)
+      return nil unless @@notifiers.include?(name)
+
+      send(name,Message.new(self),data)
     end
 
     def initialize(user,pw,options={})
@@ -19,12 +22,14 @@ class Uppercut
       @user = user
       @pw = pw
       connect if options[:connect]
+      listen if options[:listen]
     end
 
     DEFAULT_OPTIONS = { :connect => true }
     
     def inspect #:nodoc:
       "<Uppercut::Notifier #{@user} " +
+      "#{listening? ? 'Listening' : 'Not Listening'}" + 
       "#{connected? ? 'Connected' : 'Disconnected'}>"
     end
 
