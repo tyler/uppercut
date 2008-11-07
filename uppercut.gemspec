@@ -1,30 +1,27 @@
 Gem::Specification.new do |s|
-  s.name         = 'uppercut'
-  s.version      = '0.5.0'
-  s.platform     = Gem::Platform::RUBY
-  s.author       = "Tyler McMullen"
-  s.email        = "tbmcmullen@gmail.com"
-  s.homepage     = "http://codehallow.com"
-  s.summary      = "Uppercut.  DSL for putting Jabber to work for you."
-  s.bindir       = "bin"
-  s.description  = s.summary
-  s.require_path = "lib"
-  s.files        = %w(LICENSE
-                      README.textile
-                      Rakefile
-                      lib/uppercut.rb
-                      lib/uppercut/agent.rb
-                      lib/uppercut/base.rb 
-                      lib/uppercut/conversation.rb
-                      lib/uppercut/message.rb
-                      lib/uppercut/notifier.rb
-                      specs/agent_spec.rb
-                      specs/conversation_spec.rb
-                      specs/jabber_stub.rb
-                      specs/notifier_spec.rb
-                      specs/spec_helper.rb
-                      examples/basic_agent.rb)
+  s.name = %q{uppercut}
+  s.version = "0.5.0"
 
-  # Dependencies
-  s.add_dependency "xmpp4r"
+  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.authors = ["Tyler McMullen"]
+  s.date = %q{2008-11-06}
+  s.description = %q{A DSL for writing agents and notifiers for Jabber.}
+  s.email = %q{tbmcmullen@gmail.com}
+  s.homepage = %q{http://github.com/tyler/uppercut}
+  s.require_paths = ["lib"]
+  s.rubygems_version = %q{1.2.0}
+  s.summary = %q{A DSL for writing agents and notifiers for Jabber.}
+
+  if s.respond_to? :specification_version then
+    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
+    s.specification_version = 2
+
+    if current_version >= 3 then
+      s.add_runtime_dependency(%q<xmpp4r>, [">= 0"])
+    else
+      s.add_dependency(%q<xmpp4r>, [">= 0"])
+    end
+  else
+    s.add_dependency(%q<xmpp4r>, [">= 0"])
+  end
 end
