@@ -24,4 +24,13 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<xmpp4r>, [">= 0"])
   end
+
+  s.files = [
+    "LICENSE",
+    "Rakefile",
+    "README.textile"
+  ]
+  s.files += Dir["examples/*.rb"]
+  s.files += Dir["lib/**/*.rb"]
+  s.files += Dir["spec/**/*.rb"]
 end
