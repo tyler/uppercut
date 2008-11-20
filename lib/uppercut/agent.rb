@@ -19,6 +19,19 @@ class Uppercut
         end
       end
 
+      # Define a callback for specific presence events.
+      #
+      # At the moment this is only confirmed to work with :subscribe and :unsubscribe, but it may work with other types as well.
+      # Example:
+      #
+      # on :subscribe do |conversation|
+      #   conversation.send "Welcome! Send 'help' for instructions."
+      # end
+      #
+      def on(type, &block)
+        define_method("__on_#{type.to_s}__") { |conversation| block[conversation] }
+      end
+
       private
 
       def gensym
@@ -81,10 +94,15 @@ class Uppercut
           end
         end
         @roster ||= Jabber::Roster::Helper.new(@client)
+        @roster.add_presence_callback do |item, oldp, newp|
+          dispatch_presence(item, newp)
+        end
         @roster.add_subscription_request_callback do |item,presence|
           next unless allowed_roster_includes?(presence.from)
           @roster.accept_subscription(presence.from) 
+          dispatch_presence(item, presence)
         end
+        @roster.add_subscription_callback { |item, presence| dispatch_presence(item, presence) }
         sleep
       }
     end
@@ -115,6 +133,11 @@ class Uppercut
       return block[msg.body] if block
 
       self.methods.grep(/^__uc/).sort.detect { |m| send(m,msg) != :no_match }
+    end
+
+    def dispatch_presence(item, presence)
+      handler_method = "__on_#{presence.type.to_s}__"
+      self.send(handler_method, Conversation.new(presence.from, self)) if respond_to?(handler_method)
     end
 
     def __ucDefault(msg)
