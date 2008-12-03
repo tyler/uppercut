@@ -158,6 +158,7 @@ describe Uppercut::Agent do
     it "calls the first matching command" do
       msg = Jabber::Message.new(nil)
       msg.body = 'hi'
+      msg.from = Jabber::JID.fake_jid
             
       @agent.send(:dispatch, msg)
       @agent.instance_eval { @called_hi_regex }.should_not == true
@@ -167,6 +168,7 @@ describe Uppercut::Agent do
     it "matches by regular expression" do
       msg = Jabber::Message.new(nil)
       msg.body = 'high'
+      msg.from = Jabber::JID.fake_jid
       
       @agent.send(:dispatch, msg)
       @agent.instance_eval { @called_hi }.should_not == true

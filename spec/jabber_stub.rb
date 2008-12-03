@@ -31,6 +31,8 @@ class Jabber
     def add_message_callback(&block)
       @on_message = block
     end
+
+
     
     # TESTING HELPER METHODS
     
@@ -44,6 +46,8 @@ class Jabber
   end
   
   class Presence
+    attr_accessor :from
+
     def initialize(a,b)
     end
     
@@ -71,6 +75,29 @@ class Jabber
       def add_subscription_request_callback(&block)
         @on_subscription_request = block
       end
+
+      def add_presence_callback(&block)
+        @on_presence = block
+      end
+
+      def add_subscription_callback(&block)
+        @on_subscription = block
+      end
+    end
+  end
+
+  class JID
+    def self.fake_jid
+      new 'foo', 'bar.com', 'baz'
+    end
+
+    def initialize(node,domain,res)
+      @node, @domain, @res = node, domain, res
+    end
+
+    def bare
+      self.class.new @node, @domain, nil
     end
   end
 end
+

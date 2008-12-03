@@ -1,12 +1,13 @@
 Gem::Specification.new do |s|
   s.name = %q{uppercut}
-  s.version = "0.6.1"
+  s.version = "0.6.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tyler McMullen"]
-  s.date = %q{2008-11-07}
+  s.date = %q{2008-12-02}
   s.description = %q{A DSL for writing agents and notifiers for Jabber.}
   s.email = %q{tbmcmullen@gmail.com}
+  s.files = ["README.textile", "VERSION.yml", "lib/uppercut", "lib/uppercut/agent.rb", "lib/uppercut/base.rb", "lib/uppercut/conversation.rb", "lib/uppercut/message.rb", "lib/uppercut/notifier.rb", "lib/uppercut.rb", "spec/agent_spec.rb", "spec/conversation_spec.rb", "spec/jabber_stub.rb", "spec/notifier_spec.rb", "spec/spec_helper.rb"]
   s.homepage = %q{http://github.com/tyler/uppercut}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.2.0}
@@ -24,13 +25,4 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<xmpp4r>, [">= 0"])
   end
-
-  s.files = [
-    "LICENSE",
-    "Rakefile",
-    "README.textile"
-  ]
-  s.files += Dir["examples/*.rb"]
-  s.files += Dir["lib/**/*.rb"]
-  s.files += Dir["spec/**/*.rb"]
 end

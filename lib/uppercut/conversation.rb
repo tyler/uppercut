@@ -21,7 +21,7 @@ class Uppercut
     #       end
     #     end
     def wait_for(&block)
-      @base.redirect_from(@to,&block)
+      @base.redirect_from(@to.bare,&block)
     end
 
   end

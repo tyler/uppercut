@@ -1,5 +1,3 @@
-# Based on the merb-core Rakefile.  Thanks.
-
 require "rake"
 require "rake/clean"
 require "rake/gempackagetask"
@@ -24,6 +22,7 @@ begin
     s.description = s.summary
     s.authors = ["Tyler McMullen"]
     s.add_dependency 'xmpp4r'
+    s.files = FileList["[A-Z]*.*", "{bin,generators,lib,test,spec,examples}/**/*"]
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
