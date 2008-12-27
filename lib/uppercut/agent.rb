@@ -1,5 +1,8 @@
 class Uppercut
   class Agent < Base
+    VALID_CALLBACKS = [:signon, :signoff, :subscribe, :unsubscribe, :subscription_approval,
+                       :subscription_denial, :status_change, :status_message_change]
+
     class << self
       # Define a new command for the agent.
       # 
@@ -29,7 +32,8 @@ class Uppercut
       # end
       #
       def on(type, &block)
-        define_method("__on_#{type.to_s}__") { |conversation| block[conversation] }
+        raise 'Not a valid callback' unless VALID_CALLBACKS.include?(type)
+        define_method("__on_#{type.to_s}") { |conversation| block[conversation] }
       end
 
       private
@@ -76,34 +80,70 @@ class Uppercut
     # Calling listen fires off a new Thread whose sole purpose is to listen
     # for new incoming messages and then fire off a new Thread which dispatches
     # the message to the proper handler.
-    def listen(debug=false)
+    def listen
       connect unless connected?
 
       @listen_thread = Thread.new {
         @client.add_message_callback do |message|
-          next if message.body.nil?
-          next unless allowed_roster_includes?(message.from)
+          log_and_continue do
+            next if message.body.nil?
+            next unless allowed_roster_includes?(message.from)
+            dispatch message
+          end
+        end
 
-          Thread.new do
-            begin
-              dispatch(message)
-            rescue => e
-              log e
-              raise if debug
+        @roster ||= Jabber::Roster::Helper.new(@client)
+        @roster.add_presence_callback do |item, old_presence, new_presence|
+          # Callbacks:
+          # post-subscribe initial stuff (oldp == nil)
+          # status change: (oldp.show != newp.show)
+          # status message change: (oldp.status != newp.status)
+
+          log_and_continue do
+            if old_presence.nil? && new_presence.type == :unavailable
+              dispatch_presence :signoff, new_presence
+            elsif old_presence.nil?
+              # do nothing, we don't care
+            elsif old_presence.type == :unavailable && new_presence
+              dispatch_presence :signon, new_presence
+            elsif old_presence.show != new_presence.show
+              dispatch_presence :status_change, new_presence
+            elsif old_presence.status != new_presence.status
+              dispatch_presence :status_message_change, new_presence
             end
           end
         end
-        @roster ||= Jabber::Roster::Helper.new(@client)
-        @roster.add_presence_callback do |item, oldp, newp|
-          dispatch_presence(item, newp)
-        end
         @roster.add_subscription_request_callback do |item,presence|
-          next unless allowed_roster_includes?(presence.from)
-          @roster.accept_subscription(presence.from) 
-          dispatch_presence(item, presence)
+          # Callbacks:
+          # someone tries to subscribe (presence.type == 'subscribe')
+
+          log_and_continue do
+            case presence.type
+            when :subscribe
+              next unless allowed_roster_includes?(presence.from)
+              @roster.accept_subscription(presence.from)
+              @roster.add(presence.from, nil, true)
+              dispatch_presence :subscribe, presence
+            end
+          end
         end
         @roster.add_subscription_callback do |item, presence|
-          dispatch_presence(item, presence)
+          # Callbacks:
+          # user allows agent to subscribe to them (presence.type == 'subscribed')
+          # user denies agent subscribe request (presence.type == 'unsubscribed')
+          # user unsubscribes from agent (presence.type == 'unsubscribe')
+
+          log_and_continue do
+            case presence.type
+            when :subscribed
+              dispatch_presence :subscription_approval, presence
+            when :unsubscribed
+              # if item.subscription != :from, it's not a denial... it's just an unsub
+              dispatch_presence(:subscription_denial, presence) if item.subscription == :from
+            when :unsubscribe
+              dispatch_presence :unsubscribe, presence
+            end
+          end
         end
         sleep
       }
@@ -126,9 +166,16 @@ class Uppercut
       @redirects[contact].push block
     end
     
-    attr_accessor :allowed_roster
+    attr_accessor :allowed_roster, :roster
 
     private
+
+    def log_and_continue
+      yield
+    rescue => e
+      log e
+      raise if @debug
+    end
 
     def dispatch(msg)
       bare_from = msg.from.bare
@@ -138,9 +185,9 @@ class Uppercut
       self.methods.grep(/^__uc/).sort.detect { |m| send(m,msg) != :no_match }
     end
 
-    def dispatch_presence(item, presence)
-      handler_method = "__on_#{presence.type.to_s}__"
-      self.send(handler_method, Conversation.new(presence.from, self)) if respond_to?(handler_method)
+    def dispatch_presence(type, presence)
+      handler = "__on_#{type}"
+      self.send(handler, Conversation.new(presence.from, self), presence) if respond_to?(handler)
     end
 
     def __ucDefault(msg)
