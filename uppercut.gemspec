@@ -1,13 +1,13 @@
 Gem::Specification.new do |s|
   s.name = %q{uppercut}
-  s.version = "0.6.2"
+  s.version = "0.7.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tyler McMullen"]
-  s.date = %q{2008-12-02}
+  s.date = %q{2008-12-27}
   s.description = %q{A DSL for writing agents and notifiers for Jabber.}
   s.email = %q{tbmcmullen@gmail.com}
-  s.files = ["README.textile", "VERSION.yml", "lib/uppercut", "lib/uppercut/agent.rb", "lib/uppercut/base.rb", "lib/uppercut/conversation.rb", "lib/uppercut/message.rb", "lib/uppercut/notifier.rb", "lib/uppercut.rb", "spec/agent_spec.rb", "spec/conversation_spec.rb", "spec/jabber_stub.rb", "spec/notifier_spec.rb", "spec/spec_helper.rb"]
+  s.files = ["README.textile", "VERSION.yml", "lib/test.rb", "lib/uppercut", "lib/uppercut/agent.rb", "lib/uppercut/base.rb", "lib/uppercut/conversation.rb", "lib/uppercut/message.rb", "lib/uppercut/notifier.rb", "lib/uppercut.rb", "spec/agent_spec.rb", "spec/conversation_spec.rb", "spec/jabber_stub.rb", "spec/notifier_spec.rb", "spec/spec_helper.rb", "examples/#basic_agent.rb#", "examples/basic_agent.rb"]
   s.homepage = %q{http://github.com/tyler/uppercut}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.2.0}
