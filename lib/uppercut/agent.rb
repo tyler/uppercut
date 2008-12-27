@@ -16,10 +16,10 @@ class Uppercut
       # any captures in the pattern Regexp. (Does not apply to String 
       # patterns).
       def command(pattern,&block)
-        define_method(gensym) do |msg|
-          return :no_match unless captures = matches?(pattern,msg.body)
-          block[Conversation.new(msg.from,self),*captures]
-        end
+        @@patterns ||= []
+        g = gensym
+        @@patterns << [pattern,g]
+        define_method(g, &block)
       end
 
       # Define a callback for specific presence events.
@@ -39,7 +39,7 @@ class Uppercut
       private
 
       def gensym
-        '__uc' + (self.instance_methods.grep(/^__uc/).size).to_s.rjust(8,'0')
+        ('__uc' + (self.instance_methods.grep(/^__uc/).size).to_s.rjust(8,'0')).intern
       end
     end
 
@@ -182,7 +182,12 @@ class Uppercut
       block = @redirects[bare_from].respond_to?(:shift) && @redirects[bare_from].shift
       return block[msg.body] if block
 
-      self.methods.grep(/^__uc/).sort.detect { |m| send(m,msg) != :no_match }
+      captures = nil
+      pair = @@patterns.detect { |pattern,method| captures = matches?(pattern,msg.body) }
+      if pair
+        pattern, method = pair if pair
+        send method, Conversation.new(msg.from,self), captures
+      end
     end
 
     def dispatch_presence(type, presence)
