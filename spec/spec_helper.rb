@@ -35,6 +35,10 @@ class TestAgent < Uppercut::Agent
       c.send 'Hooray!'
     end
   end
+
+  Uppercut::Agent::VALID_CALLBACKS.each do |cb|
+    on(cb) { }
+  end
 end
 
 class TestNotifier < Uppercut::Notifier

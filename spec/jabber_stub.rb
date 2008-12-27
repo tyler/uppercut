@@ -46,12 +46,9 @@ class Jabber
   end
   
   class Presence
-    attr_accessor :from
+    attr_accessor :from, :type, :show, :status
 
     def initialize(a,b)
-    end
-    
-    def from
     end
   end
   
@@ -64,11 +61,18 @@ class Jabber
   
   class Roster
     class Helper
+      class RosterItem
+        attr_accessor :subscription
+      end
+
       def initialize(client)
         @client = client
       end
       
       def accept_subscription(a)
+      end
+
+      def add(a)
       end
    
       attr_reader :on_subscription_request
@@ -82,6 +86,20 @@ class Jabber
 
       def add_subscription_callback(&block)
         @on_subscription = block
+      end
+
+      # TESTING HELPER METHODS
+
+      def receive_presence(item, old_presence, new_presence)
+        @on_presence[item, old_presence, new_presence]
+      end
+
+      def receive_subscription(item, presence)
+        @on_subscription[item, presence]
+      end
+
+      def receive_subscription_request(item, presence)
+        @on_subscription_request[item, presence]
       end
     end
   end
