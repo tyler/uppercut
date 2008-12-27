@@ -12,22 +12,22 @@ require 'uppercut'
 require 'jabber_stub'
 
 class TestAgent < Uppercut::Agent
-  command 'hi' do |c|
+  command 'hi' do |c,args|
     c.instance_eval { @base.instance_eval { @called_hi = true } }
     c.send 'called hi'
   end
   
-  command /^hi/ do |c|
+  command /^hi/ do |c,args|
     c.instance_eval { @base.instance_eval { @called_hi_regex = true } }
     c.send 'called high regex'
   end
   
-  command /(good)?bye/ do |c,good|
+  command /(good)?bye/ do |c,args|
     @called_goodbye = true
-    c.send good ? "Good bye to you as well!" : "Rot!"
+    c.send args.first ? "Good bye to you as well!" : "Rot!"
   end
   
-  command 'wait' do |c|
+  command 'wait' do |c,args|
     @called_wait = true
     c.send 'Waiting...'
     c.wait_for do |reply|
