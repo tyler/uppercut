@@ -47,6 +47,32 @@ Then to actually put the Agent to work...
 This creates a new BasicAgent instance and sends it _listen_ to make it start accepting messages.
 Note that by default when an agent is listening, it ignores all errors.  (In the future, I'll have it log them.)
 
+There are also event callbacks for agents.  These events are based on XMPP presence messages.  So, as of this writing,
+the list of allowed callbacks is: signon, signoff, subscribe, unsubscribe, subscription_approval, subscription_denial,
+status_change, and status_message_change.
+
+You can use these callbacks as follows:
+
+<pre>
+  <code>
+    class CoolAgent < Uppercut::Agent
+      on :subscribe do |c|
+        c.send 'Hey dude, thanks for subscribing!'
+      end
+
+      on :signoff do |c|
+        puts "LOG: #{c.to} signed off."
+      end
+    end
+  </code>
+</pre>
+
+Some callbacks only work if the user allows the agent to subscribe to their presence notifications.  This happens
+automatically when a user subscribes to your agent.  (Depending on their client) they'll be presented with a choice
+to authorize or deny the subscription.  You can catch their answer with the 'subscription_approval' and 'subscription_denial'
+callbacks.  Without their approving the subscription, your 'signon', 'signoff', 'status_change', and 'status_message_change'
+callbacks will not be fired by them.  I suggest using the 'subscription_denial' callback to inform them of that.
+
 
 h2. Making a Notifier
 
